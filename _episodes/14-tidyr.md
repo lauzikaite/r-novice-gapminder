@@ -277,8 +277,16 @@ gap_long$year <- as.integer(gap_long$year)
 > >
 > >
 > >~~~
+> >Warning: The `printer` argument is deprecated as of rlang 0.3.0.
+> >This warning is displayed once per session.
+> >~~~
+> >{: .error}
+> >
+> >
+> >
+> >~~~
 > ># A tibble: 15 x 3
-> ># Groups:   continent [5]
+> ># Groups:   continent [?]
 > >   continent obs_type       means
 > >   <chr>     <chr>          <dbl>
 > > 1 Africa    gdpPercap     2194. 

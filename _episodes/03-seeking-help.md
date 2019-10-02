@@ -124,33 +124,33 @@ sessionInfo()
 
 
 ~~~
-R version 3.6.1 (2017-01-27)
+R version 3.5.2 (2018-12-20)
 Platform: x86_64-pc-linux-gnu (64-bit)
-Running under: Ubuntu 14.04.5 LTS
+Running under: Ubuntu 16.04.5 LTS
 
 Matrix products: default
-BLAS:   /home/travis/R-bin/lib/R/lib/libRblas.so
-LAPACK: /home/travis/R-bin/lib/R/lib/libRlapack.so
+BLAS: /usr/lib/libblas/libblas.so.3.6.0
+LAPACK: /usr/lib/lapack/liblapack.so.3.6.0
 
 locale:
- [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
- [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
- [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
- [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [1] LC_CTYPE=en_GB.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_GB.UTF-8        LC_COLLATE=en_GB.UTF-8    
+ [5] LC_MONETARY=en_GB.UTF-8    LC_MESSAGES=en_GB.UTF-8   
+ [7] LC_PAPER=en_GB.UTF-8       LC_NAME=C                 
  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
-[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+[11] LC_MEASUREMENT=en_GB.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] knitr_1.25              requirements_0.0.0.9000 remotes_2.1.0          
+[1] knitr_1.20              requirements_0.0.0.9000 remotes_2.0.2          
 
 loaded via a namespace (and not attached):
- [1] compiler_3.6.1  magrittr_1.5    htmltools_0.3.6 tools_3.6.1    
- [5] yaml_2.2.0      Rcpp_1.0.2      stringi_1.4.3   rmarkdown_1.15 
- [9] stringr_1.4.0   xfun_0.9        digest_0.6.21   rlang_0.4.0    
-[13] evaluate_0.14  
+ [1] compiler_3.5.2  backports_1.1.2 magrittr_1.5    rprojroot_1.3-2
+ [5] htmltools_0.3.6 tools_3.5.2     yaml_2.2.0      Rcpp_1.0.0     
+ [9] stringi_1.2.4   rmarkdown_1.10  stringr_1.3.1   digest_0.6.18  
+[13] rlang_0.4.0     evaluate_0.12  
 ~~~
 {: .output}
 

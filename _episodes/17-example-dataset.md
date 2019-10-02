@@ -26,18 +26,44 @@ Let's start by downnloading Game of Thrones characters' mortality data from [her
 
 > ## Challenge 1
 >
-> Save all three files your `data/` directory and set the working directory to it.
-> How do you change working directory?
+> Save all three files your `data/` directory and change the working directory to it.
+> Now read the `data/character_data_S01-S08.csv` file into R.
 >
 > > ## Solution to Challenge 1
 > >
 > > 
 > > ~~~
 > > setwd('path/to/data')
+> > got_dat <- read.csv(file = "character_data_S01-S08.csv", header = TRUE, stringsAsFactors = FALSE)
 > > ~~~
 > > {: .language-r}
 > {: .solution}
 {: .challenge}
 
 
+~~~
+Warning in file(file, "rt"): cannot open file 'character_data_S01-S08.csv':
+No such file or directory
+~~~
+{: .error}
+
+
+
+~~~
+Error in file(file, "rt"): cannot open the connection
+~~~
+{: .error}
+
+
+~~~
+got_dat
+~~~
+{: .language-r}
+
+
+
+~~~
+Error in eval(expr, envir, enclos): object 'got_dat' not found
+~~~
+{: .error}
 

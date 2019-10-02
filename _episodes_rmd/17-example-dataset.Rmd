@@ -36,18 +36,24 @@ Let's start by downnloading Game of Thrones characters' mortality data from [her
 
 > ## Challenge 1
 >
-> Save all three files your `data/` directory and set the working directory to it.
-> How do you change working directory?
+> Save all three files your `data/` directory and change the working directory to it.
+> Now read the `data/character_data_S01-S08.csv` file into R.
 >
 > > ## Solution to Challenge 1
 > >
 > > ```{r, eval=FALSE}
 > > setwd('path/to/data')
+> > got_dat <- read.csv(file = "character_data_S01-S08.csv", header = TRUE, stringsAsFactors = FALSE)
 > > ```
 > {: .solution}
 {: .challenge}
 
-```{r, eval=FALSE}
+```{r, eval=TRUE, echo=FALSE}
+knitr::opts_knit$set(root.dir = "/home/elze/Documents/Projects/Carpentries/GoT_dataset/")
+got_dat <- read.csv(file = "character_data_S01-S08.csv", header = TRUE, stringsAsFactors = FALSE)
+```
 
+```{r}
+got_dat
 ```
 

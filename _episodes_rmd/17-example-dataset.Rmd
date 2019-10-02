@@ -3,36 +3,24 @@ title: "Mortality and survival in Game of Thrones"
 teaching: 15
 exercises: 40
 questions:
-- "How can I preliminary data quality visualisations?"
+- "How can I perform preliminary data quality visualisations?"
 objectives:
-- Understand the value of writing reproducible reports
-- Learn how to recognise and compile the basic components of an R Markdown file
-- Become familiar with R code chunks, and understand their purpose, structure and options 
-- Demonstrate the use of inline chunks for weaving R outputs into text blocks, for example when discussing the results of some calculations
-- Be aware of alternative output formats to which an R Markdown file can be exported
+- Learn how to undertake simple dataset review and visualitions
+- Perform suvival analyses
 keypoints:
-- "Mix reporting written in R Markdown with software written in R."
-- "Specify chunk options to control formatting."
-- "Use `knitr` to convert these documents into PDF and other formats."
+- "Load data into R."
+- "Perform basic data visualisations using ggplot2"
 source: Rmd
 ---
 
 ```{r, include=FALSE}
 source("../bin/chunk-options.R")
-knitr_fig_path("04-")
-
-## Save the data
-cats_orig <- data.frame(coat = factor(c("calico", "black", "tabby")),
-                   weight = c(2.1, 5.0, 3.2),
-                   likes_string = c(1, 0, 1))
-cats_bad <- data.frame(coat = factor(c("calico", "black", "tabby", "tabby")),
-                   weight = factor(c(2.1, 5.0, 3.2, '2.3 or 2.4')),
-                   likes_string = c(1, 0, 1, 1))
-cats <- cats_orig
+knitr_fig_path("17-")
 ```
 
-Let's start by downnloading Game of Thrones characters' mortality data from [here](https://figshare.com/articles/Game_of_Thrones_mortality_and_survival_dataset/8259680?mc_cid=6ee60dc1ef&mc_eid=f10fe3b3f2)
+Let's start by downnloading Game of Thrones characters' mortality data from [here](https://figshare.com/articles/Game_of_Thrones_mortality_and_survival_dataset/8259680?mc_cid=6ee60dc1ef&mc_eid=f10fe3b3f2).
 
+There is an additional metadata encoding table that we have prepared, which you can download from [here]()
 
 > ## Challenge 1
 >
@@ -44,16 +32,29 @@ Let's start by downnloading Game of Thrones characters' mortality data from [her
 > > ```{r, eval=FALSE}
 > > setwd('path/to/data')
 > > got_dat <- read.csv(file = "character_data_S01-S08.csv", header = TRUE, stringsAsFactors = FALSE)
+> > meta <- read.csv(file = "encoding.csv", header = TRUE, stringsAsFactors = FALSE)
 > > ```
 > {: .solution}
 {: .challenge}
 
 ```{r, eval=TRUE, echo=FALSE}
-knitr::opts_knit$set(root.dir = "/home/elze/Documents/Projects/Carpentries/GoT_dataset/")
-got_dat <- read.csv(file = "character_data_S01-S08.csv", header = TRUE, stringsAsFactors = FALSE)
+got_dat <- read.csv(file = "./data/character_data_S01-S08.csv", header = TRUE, stringsAsFactors = FALSE)
+meta <- read.csv(file = "./data/encoding.csv", header = TRUE, stringsAsFactors = FALSE)
 ```
 
-```{r}
-got_dat
-```
+Once that data is loaded, let's evualuate its quality.
 
+> ## Challenge 2
+>
+> Does the table with GoT characters's mortality data look reasonable?
+>
+> > ## Solution to Challenge 2
+> >
+> > ```{r, eval=TRUE}
+> > ## make a summary for each column 
+> > summary(got_dat)
+> > ## check for NAs in each column
+> > apply(got_dat, 2, function(x) all(is.na(x)))
+> > ```
+> {: .solution}
+{: .challenge}

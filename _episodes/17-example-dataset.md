@@ -17,14 +17,15 @@ source: Rmd
 
 
 
-Let's start by downnloading Game of Thrones characters' mortality data from [here](https://figshare.com/articles/Game_of_Thrones_mortality_and_survival_dataset/8259680?mc_cid=6ee60dc1ef&mc_eid=f10fe3b3f2).
+Let's start by downnloading Game of Thrones characters' mortality data, that was published [here](https://figshare.com/articles/Game_of_Thrones_mortality_and_survival_dataset/8259680?mc_cid=6ee60dc1ef&mc_eid=f10fe3b3f2). Please save the following two files using `File - Save As` dialog in your browser.
 
-There is an additional metadata encoding table that we have prepared, which you can download from [here]()
+1. Original [characters data](https://raw.githubusercontent.com/lauzikaite/r-novice-gapminder/gh-pages/_episodes_rmd/data/character_data_S01-S08.csv)
+2. Additional [data encoding](https://raw.githubusercontent.com/lauzikaite/r-novice-gapminder/gh-pages/_episodes_rmd/data/encoding.csv) table
 
 > ## Challenge 1
 >
 > Save all three files your `data/` directory and change the working directory to it.
-> Now read the `data/character_data_S01-S08.csv` file into R.
+> Now read the `data/character_data_S01-S08.csv` and `encoding.csv` files into R.
 >
 > > ## Solution to Challenge 1
 > >
@@ -44,10 +45,10 @@ Once that data is loaded, let's evualuate its quality.
 
 > ## Challenge 2
 >
-> Does the table with GoT characters's mortality data look reasonable?
+> Does the table with GoT characters's mortality data look correct? Are there any missing entries? 
 >
 > > ## Solution to Challenge 2
-> >
+> > Note that there are many ways to do it.
 > > 
 > > ~~~
 > > ## make a summary for each column 
@@ -148,47 +149,77 @@ Once that data is loaded, let's evualuate its quality.
 > >                               
 > > ~~~
 > > {: .output}
-> > 
-> > 
+> >
+> > The last five columns have no entries at all and should be removed to not interfer with statistical analyses.
 > > 
 > > ~~~
-> > ## check for NAs in each column
-> > apply(got_dat, 2, function(x) all(is.na(x)))
+> > ## remove columns that only contain NAs as entries
+> > got <- got_dat[ , which(!apply(got_dat, 2, function(x) all(is.na(x))))]
 > > ~~~
 > > {: .language-r}
-> > 
-> > 
-> > 
-> > ~~~
-> >                     id                   name                    sex 
-> >                  FALSE                  FALSE                  FALSE 
-> >               religion             occupation          social_status 
-> >                  FALSE                  FALSE                  FALSE 
-> >        allegiance_last    allegiance_switched           intro_season 
-> >                  FALSE                  FALSE                  FALSE 
-> >          intro_episode         intro_time_sec         intro_time_hrs 
-> >                  FALSE                  FALSE                  FALSE 
-> >               dth_flag             dth_season            dth_episode 
-> >                  FALSE                  FALSE                  FALSE 
-> >           dth_time_sec           dth_time_hrs        censor_time_sec 
-> >                  FALSE                  FALSE                  FALSE 
-> >        censor_time_hrs             exp_season            exp_episode 
-> >                  FALSE                  FALSE                  FALSE 
-> >           exp_time_sec           exp_time_hrs featured_episode_count 
-> >                  FALSE                  FALSE                  FALSE 
-> >             prominence        dth_description          icd10_dx_code 
-> >                  FALSE                  FALSE                  FALSE 
-> >          icd10_dx_text       icd10_cause_code       icd10_cause_text 
-> >                  FALSE                  FALSE                  FALSE 
-> >       icd10_place_code       icd10_place_text           top_location 
-> >                  FALSE                  FALSE                  FALSE 
-> >           geo_location            time_of_day                      X 
-> >                  FALSE                  FALSE                   TRUE 
-> >                    X.1                    X.2                    X.3 
-> >                   TRUE                   TRUE                   TRUE 
-> >                    X.4                    X.5 
-> >                   TRUE                   TRUE 
-> > ~~~
-> > {: .output}
 > {: .solution}
 {: .challenge}
+
+## Graphical data exploration
+
+To make graphical data visulisations, we will be using `ggplot`  library.
+
+
+~~~
+library(ggplot2)
+~~~
+{: .language-r}
+
+First, we will make plots to check the distribution of different variables:
+
+**Categorical**:
+
+* sex
+* religion
+* occupation
+* social_status
+* allegiance
+* ...
+
+Type of **occupation** was categorised as “silk collar” (e.g. clergy, merchants, politicians, and rulers) or “boiled leather collar” (e.g. warriors, farmers, and other occupations relying heavily on manual work). 
+Type of **social status** was categorised as “highborn” (lords, ladies, or legitimate offspring) or “lowborn” (all other characters).
+
+Because some characters switched **allegiance** during the show, both their last known allegiance and whether or not they switched allegiance during the show were recorded.
+
+**Continuous**:
+
+* exp_time_sec, survival time of character
+* intro_time_sec, cumulative net running time when character first appeared
+* dth_episode, number of the episode in which character died
+* prominence
+* ...
+
+A proxy measure for how prominently a character featured in the show was provided in the data. This **prominence** score was calculated by taking the number of episodes that a character appeared in and dividing that by the number of total episodes that the character could have appeared in (i.e. the number of episodes occurring from the character first being introduced until the point of death or censoring). This ratio was then multiplied by the number of seasons that the character had featured in.
+
+> ## Quick question
+>
+> What every other variable in the dataset is: categorical or continuous?
+{: .callout}
+
+## Distribution
+
+To begin with, let's compare three categorical variables at a time, e.g. occupation vs sex vs social status.
+
+
+~~~
+ggplot(got) +
+  geom_histogram(aes(x = factor(occupation), fill = factor(social_status)), stat = "count") +
+  facet_wrap(~sex) +
+  scale_x_discrete(name = "occupation") +
+  scale_fill_viridis_d(name = "social status")
+~~~
+{: .language-r}
+
+
+
+~~~
+Warning: Ignoring unknown parameters: binwidth, bins, pad
+~~~
+{: .error}
+
+<img src="../fig/rmd-17-unnamed-chunk-7-1.png" title="plot of chunk unnamed-chunk-7" alt="plot of chunk unnamed-chunk-7" width="612" style="display: block; margin: auto;" />

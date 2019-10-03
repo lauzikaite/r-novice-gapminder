@@ -6,16 +6,16 @@ subtitle: "Death is certain, the time is not"
 teaching: 15
 exercises: 40
 questions:
-- "How can I perform preliminary data quality visualisations?"
-- "How can I undertake survival analysis?"
+- "How can I perform basic graphical data visualisations?"
+- "How can I perform survival analysis?"
 objectives:
-- "Learn how to undertake preliminary data quality review and graphical visualitions."
-- "Perform suvival analyses."
-- "Estimate the probability of a character dying within the first hour after first being introduced on screen."
+- "Explore GoT mortality dataset."
+- "Visualise GoT datasetgraphically."
+- "Get to know the basics of suvival analyses."
 keypoints:
 - "Load data into R."
-- "Perform basic data visualisations using ggplot2 package."
-- "Perform survival analyses using survival and survminer packages."
+- "Perform basic data visualisations using `ggplot2` package."
+- "Perform survival analyses using `survival` and `survminer` packages."
 source: Rmd
 ---
 
@@ -23,8 +23,7 @@ source: Rmd
 
 ![](./../fig/GoT.png)
 
-
-Let's start by downnloading Game of Thrones characters' mortality data, that was published [here](https://figshare.com/articles/Game_of_Thrones_mortality_and_survival_dataset/8259680?mc_cid=6ee60dc1ef&mc_eid=f10fe3b3f2). Please save the following two files using `File - Save As` dialog in your browser.
+Let's start by downloading Game of Thrones characters' mortality data, that was published [here](https://figshare.com/articles/Game_of_Thrones_mortality_and_survival_dataset/8259680?mc_cid=6ee60dc1ef&mc_eid=f10fe3b3f2). Please save the following two files using `File - Save As` dialog in your browser.
 
 1. Original [characters data](https://raw.githubusercontent.com/lauzikaite/r-novice-gapminder/gh-pages/_episodes_rmd/data/character_data_S01-S08.csv)
 2. Additional [data encoding](https://raw.githubusercontent.com/lauzikaite/r-novice-gapminder/gh-pages/_episodes_rmd/data/encoding.csv) table
@@ -48,7 +47,7 @@ Let's start by downnloading Game of Thrones characters' mortality data, that was
 
 
 
-Once data is loaded into R, let's evualuate its quality.
+Once data is loaded into R, let's evaluate its quality.
 
 > ## Challenge 2
 >
@@ -169,7 +168,7 @@ Once data is loaded into R, let's evualuate its quality.
 
 ## Graphical data exploration
 
-To make graphical data visulisations, we will be using `ggplot`  library.
+To make graphical data visualisations, we will be using `ggplot`  library.
 
 
 ~~~
@@ -186,6 +185,7 @@ First, we will make plots to check the distribution of different variables:
 * occupation
 * social_status
 * allegiance
+* dth_flag
 * ...
 
 Type of **occupation** was categorised as “silk collar” (e.g. clergy, merchants, politicians, and rulers) or “boiled leather collar” (e.g. warriors, farmers, and other occupations relying heavily on manual work). 
@@ -193,12 +193,15 @@ Type of **social status** was categorised as “highborn” (lords, ladies, or l
 
 Because some characters switched **allegiance** during the show, both their last known allegiance and whether or not they switched allegiance during the show were recorded.
 
+Whether character died or not during the period provided in the dataset is flagged in column **dth_flag**.
+
 **Continuous**:
 
 * exp_time_sec, survival time of character
 * intro_time_sec, cumulative net running time when character first appeared
 * dth_episode, number of the episode in which character died
 * prominence
+* icd10_cause_text, cause of death
 * ...
 
 A proxy measure for how prominently a character featured in the show was provided in the data. This **prominence** score was calculated by taking the number of episodes that a character appeared in and dividing that by the number of total episodes that the character could have appeared in (i.e. the number of episodes occurring from the character first being introduced until the point of death or censoring). This ratio was then multiplied by the number of seasons that the character had featured in.
@@ -379,4 +382,404 @@ This is not a very informative graph, because all categorical variables are enco
 > > <img src="../fig/rmd-17-unnamed-chunk-10-1.png" title="plot of chunk unnamed-chunk-10" alt="plot of chunk unnamed-chunk-10" width="612" style="display: block; margin: auto;" />
 > {: .solution}
 {: .challenge}
+
+## Brief overview
+
+The cause of death is stored in column `icd10_cause_text` in the original dataset. Value `dth_flag == 1` indicates that character died during the period described in the dataset.
+
+
+~~~
+head(got[got$dth_flag == 1, "icd10_cause_text"])
+~~~
+{: .language-r}
+
+
+
+~~~
+[1] "Assault by knife"                                                                  
+[2] "Assault by knife"                                                                  
+[3] "Legal execution"                                                                   
+[4] "Assault by hanging, strangulation and suffocation"                                 
+[5] "Assault by other specified sharp object"                                           
+[6] "War operations involving firearm discharge and other forms of conventional warfare"
+~~~
+{: .output}
+
+> ## Challenge 5
+>
+> Provide answers to the following questions:
+>
+> * What proportion of characters died by the end of the period included in the dataset?
+> * What are the major causes of death?
+>
+> > ## Solution to Challenge 5
+> > 
+> > 
+> > ~~~
+> > chars_died <- nrow(got[got$dth_flag == 1, ])
+> > chars_total <- nrow(got)
+> > ## proportion of characters that died
+> > chars_died/ chars_total * 100
+> > ~~~
+> > {: .language-r}
+> > 
+> > 
+> > 
+> > ~~~
+> > [1] 59.05292
+> > ~~~
+> > {: .output}
+> > To identify the most common cause of death, use function `table` which calculates frequencies of entries.
+> > 
+> > 
+> > ~~~
+> > causes <- table(got[got$dth_flag == 1, "icd10_cause_text"])
+> > causes <- as.data.frame(causes[order(causes, decreasing = TRUE)])
+> > causes$prop <- causes$Freq/chars_died * 100
+> > cat(paste(causes$Var1,  "-", causes$prop, "\n", sep = " "))
+> > ~~~
+> > {: .language-r}
+> > 
+> > 
+> > 
+> > ~~~
+> > Assault by knife - 27.3584905660377 
+> >  War operations involving firearm discharge and other forms of conventional warfare - 24.5283018867925 
+> >  Assault by smoke, fire and flames - 8.49056603773585 
+> >  Assault by other specified sharp object - 5.66037735849057 
+> >  Legal execution - 5.18867924528302 
+> >  Assault by drugs, medicaments and biological substances - 3.30188679245283 
+> >  War operations involving fires, conflagrations and hot substances - 3.30188679245283 
+> >  Assault by bodily force - 2.83018867924528 
+> >  Assault by unspecified means - 2.83018867924528 
+> >  Assault by pushing from high place - 2.35849056603774 
+> >  Bitten or struck by other mammal - 2.35849056603774 
+> >  Assault by hanging, strangulation and suffocation - 1.88679245283019 
+> >  Other maltreatment syndromes - 1.88679245283019 
+> >   - 1.41509433962264 
+> >  Bitten or struck by dog - 1.41509433962264 
+> >  Assault by blunt object - 0.943396226415094 
+> >  Intentional self-harm by jumping from a high place - 0.943396226415094 
+> >  Intentional self-poisoning by and exposure to other unspecified drugs, medicaments and biological substances - 0.943396226415094 
+> >  War operations, unspecified - 0.943396226415094 
+> >  Assault by steam, hot vapours and hot objects - 0.471698113207547 
+> >  Intentional self-harm by hanging - 0.471698113207547 
+> >  Intentional self-harm by knife - 0.471698113207547 
+> > ~~~
+> > {: .output}
+> {: .solution}
+{: .challenge}
+
+# Survival analysis
+
+We will use Kaplan-Meier (KM) survival analysis with Cox proportional hazard regression modelling to quantify survival times and probabilities and to identify independent predictors of mortality, respectively.
+
+## Kaplan-Meier model
+
+The survival probability is the probability that an individual survives from the time origin (here, first appearance on the screen) to a specified future time (here, end of the period described in the dataset). The KM method is a non-parametric method used to estimate the survival probability from observed survival times. The KM survival curve provides a summary of the data and can be used to estimate e.g. median survival time.
+
+### Fit data to model
+
+We will use `survival` package to perform model fitting and `survminer` package for survival curves plots. Install and load required packages.
+
+
+~~~
+install.packages(c("survival", "survminer"))
+library(survival)
+library(survminer)
+~~~
+{: .language-r}
+
+
+~~~
+Loading required package: ggpubr
+~~~
+{: .output}
+
+
+
+~~~
+Loading required package: magrittr
+~~~
+{: .output}
+
+First, we will fit mortality data to the KM model. Column **exp_time_hrs** stores survival time of character in the show (hours), column **dth_flag** indicates whether character has died. 
+
+
+~~~
+surv_object <- Surv(time = got$exp_time_hrs, event = got$dth_flag)
+~~~
+{: .language-r}
+
+The function `survfit` will be used to compute KM survival estimate. Its main arguments include:
+
+* formula, represented by a survival object created using the function `Surv`.
+* dataset containing the variables.
+
+Let's plot the survival **probability** vs **time** in the show. Also add a line for median survival time.
+
+
+~~~
+surv_fit <- survfit(surv_object ~ 1, data = got)
+ggsurvplot(surv_fit, data = got, surv.median.line = "hv")
+~~~
+{: .language-r}
+
+
+
+~~~
+Error in eval(inp, data, env): object 'surv_object' not found
+~~~
+{: .error}
+
+Use the `surv_fit` object to extract the probability of surviving at least 1 h in the show.
+
+
+~~~
+surv_sum <- summary(surv_fit)
+## probabilities of surviving less than 1 hour
+probs_1 <- surv_sum$surv[which(surv_sum$time < 1)]
+## probability of surviving at least 1 hour
+probs_1[length(probs_1)]
+~~~
+{: .language-r}
+
+
+
+~~~
+[1] 0.8462928
+~~~
+{: .output}
+
+### Stratified survival
+
+Let's check whether survival probability differs between various groups of characters. We will stratify individuals by:
+
+* sex
+* social_status
+* allegiance_switched
+* prominence
+
+To compare two or more survival curves, most commonly log-rank test is applied. Essentially, the log rank test compares the observed number of events (i.e. deaths) in each group to what would be expected if the null hypothesis were true (i.e., if the survival curves were identical).
+
+The function `survdiff` can be used to compute log-rank test comparing two or more survival curves. The variable that stratifies indivoduals into groups have to be specified in the function's formula.
+
+
+> ## Challenge 6
+>
+> Fit KM model for the three variables: **sex**, **social_status**, **allegiance_switched**. You will need to specify these in the formula inside the `survfit` function.
+> To add obtained p-value for test to the plot, use `pval = TRUE` argument in `ggsurvplot` function.
+> Don't forget to use the data.frame with string values for categorical variables so that the plots would have clear labels.
+>
+> > ## Solution to Challenge 6
+> > 
+> > 
+> > ~~~
+> > ## stratify by sex
+> > surv_fit <- survfit(surv_object ~ sex, data = got_cat)
+> > ggsurvplot(surv_fit, data = got, pval = TRUE)
+> > ~~~
+> > {: .language-r}
+> > 
+> > 
+> > 
+> > ~~~
+> > Error in eval(inp, data, env): object 'surv_object' not found
+> > ~~~
+> > {: .error}
+> > 
+> > 
+> > ~~~
+> > ## stratify by social_status
+> > surv_fit <- survfit(surv_object ~ social_status, data = got_cat)
+> > ggsurvplot(surv_fit, data = got, pval = TRUE)
+> > ~~~
+> > {: .language-r}
+> > 
+> > 
+> > 
+> > ~~~
+> > Error in eval(inp, data, env): object 'surv_object' not found
+> > ~~~
+> > {: .error}
+> >
+> > 
+> > ~~~
+> > ## stratify by allegiance_switched
+> > surv_fit <- survfit(surv_object ~ allegiance_switched, data = got_cat)
+> > ggsurvplot(surv_fit, data = got, pval = TRUE)
+> > ~~~
+> > {: .language-r}
+> > 
+> > 
+> > 
+> > ~~~
+> > Error in eval(inp, data, env): object 'surv_object' not found
+> > ~~~
+> > {: .error}
+> {: .solution}
+{: .challenge}
+
+In order to model survival based on **prominence**, which is a continuous variable, we have to categorise characters into groups (i.e. discrete variable). 
+
+> ## Challenge 7
+>
+> Divide characters into tertiles (i.e. high, medium, and low) based on their **prominence**. Tip - one of possible ways of doing this is with `dplyr` package.
+> Make a KM survival curve plot for the prominence categories.
+>
+> > ## Solution to Challenge 7
+> > 
+> > 
+> > ~~~
+> > library(dplyr)
+> > ~~~
+> > {: .language-r}
+> > 
+> > 
+> > 
+> > ~~~
+> > 
+> > Attaching package: 'dplyr'
+> > ~~~
+> > {: .output}
+> > 
+> > 
+> > 
+> > ~~~
+> > The following objects are masked from 'package:stats':
+> > 
+> >     filter, lag
+> > ~~~
+> > {: .output}
+> > 
+> > 
+> > 
+> > ~~~
+> > The following objects are masked from 'package:base':
+> > 
+> >     intersect, setdiff, setequal, union
+> > ~~~
+> > {: .output}
+> > 
+> > 
+> > 
+> > ~~~
+> > prominence_cats <- c("Low", "Medium", "High")
+> > ## bin data into tertiles (n = 3)
+> > got_cat$prominence_tertile <- ntile(got$prominence, n = 3)
+> > got_cat$prominence <- prominence_cats[got_cat$prominence_tertile]
+> > ~~~
+> > {: .language-r}
+> > 
+> > 
+> > ~~~
+> > ## stratify by prominence tertile
+> > surv_fit <- survfit(surv_object ~ prominence, data = got_cat)
+> > ggsurvplot(surv_fit, data = got, pval = TRUE)
+> > ~~~
+> > {: .language-r}
+> > 
+> > 
+> > 
+> > ~~~
+> > Error in eval(inp, data, env): object 'surv_object' not found
+> > ~~~
+> > {: .error}
+> {: .solution}
+{: .challenge}
+
+## Cox model
+
+Cox proportional hazards regression analysis, which works for both quantitative predictor variables and for categorical variables, extends survival analysis methods to assess the effect  on survival time by of multiple risk factors simultaneously. 
+
+The function `coxph` can be used to compute the Cox proportional hazards regression model. Its main arguments include:
+
+* formula, represented by a survival object created using the function `Surv`.
+* dataset containing the variables.
+
+Univariate Cox regression for a single variable **sex**.
+
+
+~~~
+coxph(surv_object ~ sex, data = got_cat)
+~~~
+{: .language-r}
+
+
+
+~~~
+Call:
+coxph(formula = surv_object ~ sex, data = got_cat)
+
+          coef exp(coef) se(coef)     z        p
+sexMale 0.6264    1.8709   0.1697 3.691 0.000223
+
+Likelihood ratio test=15.24  on 1 df, p=9.462e-05
+n= 359, number of events= 212 
+~~~
+{: .output}
+
+### Multivariate Cox model
+
+To perform multivariate Cox regression, all variables of interest must be listed in the formula. The obtained p-values indicate whether the relationship between survival and the given risk factor was significant. Which variables are significant in this Cox model?
+
+
+~~~
+cox_fit <- coxph(surv_object ~ sex + social_status + allegiance_switched + prominence, data = got_cat)
+print(cox_fit)
+~~~
+{: .language-r}
+
+
+
+~~~
+Call:
+coxph(formula = surv_object ~ sex + social_status + allegiance_switched + 
+    prominence, data = got_cat)
+
+                          coef exp(coef) se(coef)      z        p
+sexMale                 0.2584    1.2949   0.1727  1.496   0.1345
+social_statusLowborn    0.3402    1.4053   0.1571  2.165   0.0304
+allegiance_switchedYes -0.8756    0.4166   0.2092 -4.186 2.84e-05
+prominenceLow          -1.4369    0.2377   0.2360 -6.089 1.14e-09
+prominenceMedium        0.7619    2.1424   0.1602  4.755 1.98e-06
+
+Likelihood ratio test=156.9  on 5 df, p=< 2.2e-16
+n= 359, number of events= 212 
+~~~
+{: .output}
+
+Hazard ratios (HR) are derived from the multivariate Cox model. Briefly, an HR > 1 indicates an increased risk of death if a specific risk factor is met by the individual. An HR < 1 indicates a decreased risk. Plot the obtained HR using function `ggforest`.
+
+
+~~~
+ggforest(cox_fit, data = got_cat)
+~~~
+{: .language-r}
+
+
+
+~~~
+Warning: Removed 4 rows containing missing values (geom_errorbar).
+~~~
+{: .error}
+
+<img src="../fig/rmd-17-unnamed-chunk-26-1.png" title="plot of chunk unnamed-chunk-26" alt="plot of chunk unnamed-chunk-26" width="612" style="display: block; margin: auto;" />
+
+> ## Challenge 8
+>
+> What kind of a character was more likely to die in Game of Thrones?
+>
+> > ## Solution to Challenge 8
+> > 
+> > Character that was more likely to die in Game of Thrones:
+> >
+> > * Male, rather than female (but not statistically significant)
+> > * Lowborn, rather than highborn
+> > * Those who did not switch allegiance (loalty wins?)
+> > * Characters who only featured moderately prominently (protection by the importance of the role?)
+> > 
+> {: .solution}
+{: .challenge}
+
 

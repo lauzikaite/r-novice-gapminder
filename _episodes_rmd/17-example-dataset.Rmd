@@ -1,15 +1,19 @@
 ---
 title: "Mortality and survival in Game of Thrones"
+subtitle: "Death is certain, the time is not"
 teaching: 15
 exercises: 40
 questions:
 - "How can I perform preliminary data quality visualisations?"
+- "How can I undertake survival analysis?"
 objectives:
-- Learn how to undertake simple dataset review and visualitions
-- Perform suvival analyses
+- "Learn how to undertake preliminary data quality review and graphical visualitions."
+- "Perform suvival analyses."
+- "Estimate the probability of a character dying within the first hour after first being introduced on screen."
 keypoints:
 - "Load data into R."
-- "Perform basic data visualisations using ggplot2"
+- "Perform basic data visualisations using ggplot2 package."
+- "Perform survival analyses using survival and survminer packages."
 source: Rmd
 ---
 
@@ -17,6 +21,9 @@ source: Rmd
 source("../bin/chunk-options.R")
 knitr_fig_path("17-")
 ```
+
+![](./../fig/GoT.png)
+
 
 Let's start by downnloading Game of Thrones characters' mortality data, that was published [here](https://figshare.com/articles/Game_of_Thrones_mortality_and_survival_dataset/8259680?mc_cid=6ee60dc1ef&mc_eid=f10fe3b3f2). Please save the following two files using `File - Save As` dialog in your browser.
 
@@ -26,7 +33,7 @@ Let's start by downnloading Game of Thrones characters' mortality data, that was
 > ## Challenge 1
 >
 > Save all three files your `data/` directory and change the working directory to it.
-> Now read the `data/character_data_S01-S08.csv` and `encoding.csv` files into R.
+> Now read the `data/character_data_S01-S08.csv` and `data/encoding.csv` files into R.
 >
 > > ## Solution to Challenge 1
 > >
@@ -43,14 +50,14 @@ got_dat <- read.csv(file = "./data/character_data_S01-S08.csv", header = TRUE, s
 meta <- read.csv(file = "./data/encoding.csv", header = TRUE, stringsAsFactors = FALSE)
 ```
 
-Once that data is loaded, let's evualuate its quality.
+Once data is loaded into R, let's evualuate its quality.
 
 > ## Challenge 2
 >
 > Does the table with GoT characters's mortality data look correct? Are there any missing entries? 
 >
 > > ## Solution to Challenge 2
-> > Note that there are many ways to do it.
+> >
 > > ```{r}
 > > ## make a summary for each column 
 > > summary(got_dat)
@@ -103,14 +110,69 @@ A proxy measure for how prominently a character featured in the show was provide
 > What every other variable in the dataset is: categorical or continuous?
 {: .callout}
 
-## Distribution
+### Distribution
 
-To begin with, let's compare three categorical variables at a time, e.g. occupation vs sex vs social status.
+To begin with, let's compare three categorical variables, e.g. *occupation* vs *sex* vs *social status*.
 
-```{r}
-ggplot(got) +
-  geom_histogram(aes(x = factor(occupation), fill = factor(social_status)), stat = "count") +
-  facet_wrap(~sex) +
-  scale_x_discrete(name = "occupation") +
-  scale_fill_viridis_d(name = "social status")
+> ## Challenge 3
+>
+> Make a histogram plot to show the distribution of three categorical variables of your choice, e.g. *occupation* vs *sex* vs *social status*. How can you ensure that all three variables are represented ina single figure? Tip - think about the aesthetics mapping in `ggplot()`.
+>
+> > ## Solution to Challenge 3
+> >
+> > ```{r}
+> > ## make a summary for each column 
+> > summary(got_dat)
+> > ```
+> >
+> > The last five columns have no entries at all and should be removed to not interfer with statistical analyses.
+> > ```{r, warning=FALSE, message=FALSE}
+> > ggplot(got) +
+> > geom_histogram(aes(x = factor(occupation), fill = factor(social_status)), stat = "count") +
+> > facet_wrap(~sex) +
+> > scale_x_discrete(name = "occupation") +
+> > scale_fill_viridis_d(name = "social status")
 ```
+> {: .solution}
+{: .challenge}
+
+This is not a very informative graph, because all categorical variables are encoded as numerical categories. Details of what number corresponds to what value are available in the `data_dictionary.pdf` file that you can download from the original data source [link](https://figshare.com/articles/Game_of_Thrones_mortality_and_survival_dataset/8259680?mc_cid=6ee60dc1ef&mc_eid=f10fe3b3f2). For simplicity's sake, we have saved them into the `data/encoding.csv` file, that you have loaded as `meta` object during Challenge 1.
+
+> ## Challenge 4
+>
+> How can you find the values for each of the encoded categorical variable?
+> Note - you can solve this using either basic R functions, or `dplyr` package. 
+>
+> > ## Solution to Challenge 4
+> >
+> > ```{r}
+> > ## What are the categorial variables?
+> > cols_cat <- unique(meta$variable)
+> > ## iterate over the categorial variables
+> > got_cat <- lapply(cols_cat, function(col) {
+> >   ## extract the numerical categories for the variable
+> >   got_col <- got[ , col]
+> >   ## find the corresponding entries in the metadata encoding table 
+> >   meta_col <- meta[meta$variable == col, ]
+> >   meta_col$value[match(got_col, meta_col$code)]
+> >   })
+> > got_cat <- setNames(
+> >   ## cbind the list of extracted values
+> >   as.data.frame(do.call(cbind, got_cat)),
+> >   nm = c(cols_cat))
+> > ```
+> >
+> > Now that you have a data.frame with values for the categorical variables, re-run the distribution plot.
+> > Make sure that x-axis is readible. Tip - rotate the labels.
+> >
+> > ```{r, warning=FALSE, message=FALSE}
+> > ggplot(got_cat) +
+> >   geom_histogram(aes(x = factor(occupation), fill = factor(social_status)), stat = "count") +
+> >   facet_wrap(~sex) +
+> >   scale_x_discrete(name = "occupation") +
+> >   scale_fill_viridis_d(name = "social status") +
+> >   theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+> {: .solution}
+{: .challenge}
+

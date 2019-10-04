@@ -29,11 +29,10 @@ Let's start by downloading Game of Thrones characters' mortality data, that was 
 1. Original [characters data](https://raw.githubusercontent.com/lauzikaite/r-novice-gapminder/gh-pages/_episodes_rmd/data/character_data_S01-S08.csv)
 2. Additional [data encoding](https://raw.githubusercontent.com/lauzikaite/r-novice-gapminder/gh-pages/_episodes_rmd/data/encoding.csv) table
 
-In this episode, we will provide solutions based both on **base R** and **Tidyverse**. To begin with, load packages, which we will use the most.
+In this episode, we will provide solutions based both on **base R** and **Tidyverse**. To begin with, we will only load the `dplyr` package, which we will use the most.
 
 ```{r}
 library(dplyr)
-library(tidyr)
 ```
 
 > ## Challenge 1
@@ -278,10 +277,13 @@ library(survival)
 library(survminer)
 ```
 
-First, we will fit mortality data to the KM model. Column **exp_time_hrs** stores survival time of character in the show (hours), column **dth_flag** indicates whether character has died. 
+First, we will fit mortality data to the KM model. Column **exp_time_hrs** stores survival time of character in the show (hours), column **dth_flag** indicates whether character has died. Let's add these columns to the `got_cat` data.frame, which contains catgeorical variables values, so that all neccessary information would be in one table.
 
 ```{r}
-surv_object <- Surv(time = got$exp_time_hrs, event = got$dth_flag)
+## got and got_cat have the same order, therefore we can simply take the columns from got
+got_cat$exp_time_hrs <- got$exp_time_hrs
+got_cat$dth_flag <- got$dth_flag
+surv_object <- with(got_cat, Surv(exp_time_hrs, dth_flag))
 ```
 
 The function `survfit` will be used to compute KM survival estimate. Its main arguments include:
@@ -292,14 +294,15 @@ The function `survfit` will be used to compute KM survival estimate. Its main ar
 Let's plot the survival **probability** vs **time** in the show. Also add a line for median survival time.
 
 ```{r, warning=FALSE, message=FALSE}
-surv_fit <- survfit(surv_object ~ 1, data = got)
-ggsurvplot(surv_fit, data = got, surv.median.line = "hv")
+## survival without grouping requires to specify 1 in the formula
+surv_model <- survfit(Surv(exp_time_hrs, dth_flag) ~ 1, data = got_cat)
+ggsurvplot(surv_model, data = got_cat, surv.median.line = "hv")
 ```
 
-Use the `surv_fit` object to extract the probability of surviving at least 1 h in the show.
+Use the `surv_model` object to extract the probability of surviving at least 1 h in the show.
 
 ```{r}
-surv_sum <- summary(surv_fit)
+surv_sum <- summary(surv_model)
 ## probabilities of surviving less than 1 hour
 probs_1 <- surv_sum$surv[which(surv_sum$time < 1)]
 ## probability of surviving at least 1 hour
@@ -330,20 +333,20 @@ The function `survdiff` can be used to compute log-rank test comparing two or mo
 > > 
 > > ```{r}
 > > ## stratify by sex
-> > surv_fit <- survfit(surv_object ~ sex, data = got_cat)
-> > ggsurvplot(surv_fit, data = got, pval = TRUE)
+> > surv_model <- survfit(Surv(exp_time_hrs, dth_flag) ~ sex, data = got_cat)
+> > ggsurvplot(surv_model, data = got, pval = TRUE)
 > > ```
 > > 
 > > ```{r}
 > > ## stratify by social_status
-> > surv_fit <- survfit(surv_object ~ social_status, data = got_cat)
-> > ggsurvplot(surv_fit, data = got, pval = TRUE)
+> > surv_model <- survfit(Surv(exp_time_hrs, dth_flag) ~ social_status, data = got_cat)
+> > ggsurvplot(surv_model, data = got, pval = TRUE)
 > > ```
 > >
 > > ```{r}
 > > ## stratify by allegiance_switched
-> > surv_fit <- survfit(surv_object ~ allegiance_switched, data = got_cat)
-> > ggsurvplot(surv_fit, data = got, pval = TRUE)
+> > surv_model <- survfit(Surv(exp_time_hrs, dth_flag) ~ allegiance_switched, data = got_cat)
+> > ggsurvplot(surv_model, data = got, pval = TRUE)
 > > ```
 > {: .solution}
 {: .challenge}
@@ -366,8 +369,8 @@ In order to model survival based on **prominence**, which is a continuous variab
 > > 
 > > ```{r}
 > > ## stratify by prominence tertile
-> > surv_fit <- survfit(surv_object ~ prominence, data = got_cat)
-> > ggsurvplot(surv_fit, data = got, pval = TRUE)
+> > surv_model <- survfit(Surv(exp_time_hrs, dth_flag) ~ prominence, data = got_cat)
+> > ggsurvplot(surv_model, data = got_cat, pval = TRUE)
 > > ```
 > {: .solution}
 {: .challenge}
@@ -384,7 +387,7 @@ The function `coxph` can be used to compute the Cox proportional hazards regress
 Univariate Cox regression for a single variable **sex**.
 
 ```{r}
-coxph(surv_object ~ sex, data = got_cat)
+coxph(Surv(exp_time_hrs, dth_flag) ~ sex, data = got_cat)
 ```
 
 ### Multivariate Cox model
@@ -392,7 +395,7 @@ coxph(surv_object ~ sex, data = got_cat)
 To perform multivariate Cox regression, all variables of interest must be listed in the formula. The obtained p-values indicate whether the relationship between survival and the given risk factor was significant. Which variables are significant in this Cox model?
 
 ```{r}
-cox_fit <- coxph(surv_object ~ sex + social_status + allegiance_switched + prominence, data = got_cat)
+cox_fit <- coxph(Surv(exp_time_hrs, dth_flag) ~ sex + social_status + allegiance_switched + prominence, data = got_cat)
 print(cox_fit)
 ```
 

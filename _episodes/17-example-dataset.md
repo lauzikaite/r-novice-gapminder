@@ -28,7 +28,7 @@ Let's start by downloading Game of Thrones characters' mortality data, that was 
 1. Original [characters data](https://raw.githubusercontent.com/lauzikaite/r-novice-gapminder/gh-pages/_episodes_rmd/data/character_data_S01-S08.csv)
 2. Additional [data encoding](https://raw.githubusercontent.com/lauzikaite/r-novice-gapminder/gh-pages/_episodes_rmd/data/encoding.csv) table
 
-In this episode, we will provide solutions based both on **base R** and **Tidyverse**. To begin with, load packages, which we will use the most.
+In this episode, we will provide solutions based both on **base R** and **Tidyverse**. To begin with, we will only load the `dplyr` package, which we will use the most.
 
 
 ~~~
@@ -61,13 +61,6 @@ The following objects are masked from 'package:base':
     intersect, setdiff, setequal, union
 ~~~
 {: .output}
-
-
-
-~~~
-library(tidyr)
-~~~
-{: .language-r}
 
 > ## Challenge 1
 >
@@ -473,28 +466,14 @@ Loading required package: magrittr
 ~~~
 {: .output}
 
+First, we will fit mortality data to the KM model. Column **exp_time_hrs** stores survival time of character in the show (hours), column **dth_flag** indicates whether character has died. Let's add these columns to the `got_cat` data.frame, which contains catgeorical variables values, so that all neccessary information would be in one table.
 
 
 ~~~
-
-Attaching package: 'magrittr'
-~~~
-{: .output}
-
-
-
-~~~
-The following object is masked from 'package:tidyr':
-
-    extract
-~~~
-{: .output}
-
-First, we will fit mortality data to the KM model. Column **exp_time_hrs** stores survival time of character in the show (hours), column **dth_flag** indicates whether character has died. 
-
-
-~~~
-surv_object <- Surv(time = got$exp_time_hrs, event = got$dth_flag)
+## got and got_cat have the same order, therefore we can simply take the columns from got
+got_cat$exp_time_hrs <- got$exp_time_hrs
+got_cat$dth_flag <- got$dth_flag
+surv_object <- with(got_cat, Surv(exp_time_hrs, dth_flag))
 ~~~
 {: .language-r}
 
@@ -507,23 +486,19 @@ Let's plot the survival **probability** vs **time** in the show. Also add a line
 
 
 ~~~
-surv_fit <- survfit(surv_object ~ 1, data = got)
-ggsurvplot(surv_fit, data = got, surv.median.line = "hv")
+## survival without grouping requires to specify 1 in the formula
+surv_model <- survfit(Surv(exp_time_hrs, dth_flag) ~ 1, data = got_cat)
+ggsurvplot(surv_model, data = got_cat, surv.median.line = "hv")
 ~~~
 {: .language-r}
 
+<img src="../fig/rmd-17-unnamed-chunk-19-1.png" title="plot of chunk unnamed-chunk-19" alt="plot of chunk unnamed-chunk-19" width="612" style="display: block; margin: auto;" />
+
+Use the `surv_model` object to extract the probability of surviving at least 1 h in the show.
 
 
 ~~~
-Error in eval(inp, data, env): object 'surv_object' not found
-~~~
-{: .error}
-
-Use the `surv_fit` object to extract the probability of surviving at least 1 h in the show.
-
-
-~~~
-surv_sum <- summary(surv_fit)
+surv_sum <- summary(surv_model)
 ## probabilities of surviving less than 1 hour
 probs_1 <- surv_sum$surv[which(surv_sum$time < 1)]
 ## probability of surviving at least 1 hour
@@ -563,47 +538,32 @@ The function `survdiff` can be used to compute log-rank test comparing two or mo
 > > 
 > > ~~~
 > > ## stratify by sex
-> > surv_fit <- survfit(surv_object ~ sex, data = got_cat)
-> > ggsurvplot(surv_fit, data = got, pval = TRUE)
+> > surv_model <- survfit(Surv(exp_time_hrs, dth_flag) ~ sex, data = got_cat)
+> > ggsurvplot(surv_model, data = got, pval = TRUE)
 > > ~~~
 > > {: .language-r}
 > > 
-> > 
-> > 
-> > ~~~
-> > Error in eval(inp, data, env): object 'surv_object' not found
-> > ~~~
-> > {: .error}
+> > <img src="../fig/rmd-17-unnamed-chunk-21-1.png" title="plot of chunk unnamed-chunk-21" alt="plot of chunk unnamed-chunk-21" width="612" style="display: block; margin: auto;" />
 > > 
 > > 
 > > ~~~
 > > ## stratify by social_status
-> > surv_fit <- survfit(surv_object ~ social_status, data = got_cat)
-> > ggsurvplot(surv_fit, data = got, pval = TRUE)
+> > surv_model <- survfit(Surv(exp_time_hrs, dth_flag) ~ social_status, data = got_cat)
+> > ggsurvplot(surv_model, data = got, pval = TRUE)
 > > ~~~
 > > {: .language-r}
 > > 
-> > 
-> > 
-> > ~~~
-> > Error in eval(inp, data, env): object 'surv_object' not found
-> > ~~~
-> > {: .error}
+> > <img src="../fig/rmd-17-unnamed-chunk-22-1.png" title="plot of chunk unnamed-chunk-22" alt="plot of chunk unnamed-chunk-22" width="612" style="display: block; margin: auto;" />
 > >
 > > 
 > > ~~~
 > > ## stratify by allegiance_switched
-> > surv_fit <- survfit(surv_object ~ allegiance_switched, data = got_cat)
-> > ggsurvplot(surv_fit, data = got, pval = TRUE)
+> > surv_model <- survfit(Surv(exp_time_hrs, dth_flag) ~ allegiance_switched, data = got_cat)
+> > ggsurvplot(surv_model, data = got, pval = TRUE)
 > > ~~~
 > > {: .language-r}
 > > 
-> > 
-> > 
-> > ~~~
-> > Error in eval(inp, data, env): object 'surv_object' not found
-> > ~~~
-> > {: .error}
+> > <img src="../fig/rmd-17-unnamed-chunk-23-1.png" title="plot of chunk unnamed-chunk-23" alt="plot of chunk unnamed-chunk-23" width="612" style="display: block; margin: auto;" />
 > {: .solution}
 {: .challenge}
 
@@ -628,17 +588,12 @@ In order to model survival based on **prominence**, which is a continuous variab
 > > 
 > > ~~~
 > > ## stratify by prominence tertile
-> > surv_fit <- survfit(surv_object ~ prominence, data = got_cat)
-> > ggsurvplot(surv_fit, data = got, pval = TRUE)
+> > surv_model <- survfit(Surv(exp_time_hrs, dth_flag) ~ prominence, data = got_cat)
+> > ggsurvplot(surv_model, data = got_cat, pval = TRUE)
 > > ~~~
 > > {: .language-r}
 > > 
-> > 
-> > 
-> > ~~~
-> > Error in eval(inp, data, env): object 'surv_object' not found
-> > ~~~
-> > {: .error}
+> > <img src="../fig/rmd-17-unnamed-chunk-25-1.png" title="plot of chunk unnamed-chunk-25" alt="plot of chunk unnamed-chunk-25" width="612" style="display: block; margin: auto;" />
 > {: .solution}
 {: .challenge}
 
@@ -655,7 +610,7 @@ Univariate Cox regression for a single variable **sex**.
 
 
 ~~~
-coxph(surv_object ~ sex, data = got_cat)
+coxph(Surv(exp_time_hrs, dth_flag) ~ sex, data = got_cat)
 ~~~
 {: .language-r}
 
@@ -663,7 +618,7 @@ coxph(surv_object ~ sex, data = got_cat)
 
 ~~~
 Call:
-coxph(formula = surv_object ~ sex, data = got_cat)
+coxph(formula = Surv(exp_time_hrs, dth_flag) ~ sex, data = got_cat)
 
           coef exp(coef) se(coef)     z        p
 sexMale 0.6264    1.8709   0.1697 3.691 0.000223
@@ -679,7 +634,7 @@ To perform multivariate Cox regression, all variables of interest must be listed
 
 
 ~~~
-cox_fit <- coxph(surv_object ~ sex + social_status + allegiance_switched + prominence, data = got_cat)
+cox_fit <- coxph(Surv(exp_time_hrs, dth_flag) ~ sex + social_status + allegiance_switched + prominence, data = got_cat)
 print(cox_fit)
 ~~~
 {: .language-r}
@@ -688,8 +643,8 @@ print(cox_fit)
 
 ~~~
 Call:
-coxph(formula = surv_object ~ sex + social_status + allegiance_switched + 
-    prominence, data = got_cat)
+coxph(formula = Surv(exp_time_hrs, dth_flag) ~ sex + social_status + 
+    allegiance_switched + prominence, data = got_cat)
 
                           coef exp(coef) se(coef)      z        p
 sexMale                 0.2584    1.2949   0.1727  1.496   0.1345

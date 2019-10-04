@@ -1,19 +1,19 @@
 ---
 title: "Mortality and survival in Game of Thrones"
-subtitle: "Death is certain, the time is not"
 teaching: 15
 exercises: 40
-questions:
-- "How can I perform basic graphical data visualisations?"
-- "How can I perform survival analysis?"
-objectives:
-- "Explore GoT mortality dataset."
-- "Visualise GoT datasetgraphically."
-- "Get to know the basics of suvival analyses."
 keypoints:
-- "Load data into R."
-- "Perform basic data visualisations using `ggplot2` package."
-- "Perform survival analyses using `survival` and `survminer` packages."
+- Load data into R.
+- Practice using **base R** and **Tidyverse**.
+- Perform basic data visualisations using `ggplot2` package.
+- Perform survival analyses using `survival` and `survminer` packages.
+objectives:
+- Explore GoT mortality dataset.
+- Visualise GoT dataset graphically.
+- Get to know the basics of suvival analyses.
+questions:
+- How can I perform basic graphical data visualisations?
+- How can I perform survival analysis?
 source: Rmd
 ---
 
@@ -22,12 +22,19 @@ source("../bin/chunk-options.R")
 knitr_fig_path("17-")
 ```
 
-![](./../fig/GoT.png)
+![Death is certain, the time is not](./../fig/GoT.png)
 
 Let's start by downloading Game of Thrones characters' mortality data, that was published [here](https://figshare.com/articles/Game_of_Thrones_mortality_and_survival_dataset/8259680?mc_cid=6ee60dc1ef&mc_eid=f10fe3b3f2). Please save the following two files using `File - Save As` dialog in your browser.
 
 1. Original [characters data](https://raw.githubusercontent.com/lauzikaite/r-novice-gapminder/gh-pages/_episodes_rmd/data/character_data_S01-S08.csv)
 2. Additional [data encoding](https://raw.githubusercontent.com/lauzikaite/r-novice-gapminder/gh-pages/_episodes_rmd/data/encoding.csv) table
+
+In this episode, we will provide solutions based both on **base R** and **Tidyverse**. To begin with, load packages, which we will use the most.
+
+```{r}
+library(dplyr)
+library(tidyr)
+```
 
 > ## Challenge 1
 >
@@ -65,10 +72,20 @@ Once data is loaded into R, let's evaluate its quality.
 > > The last five columns have no entries at all and should be removed to not interfer with statistical analyses.
 > > ```{r}
 > > ## remove columns that only contain NAs as entries
+> > ## (A) basic R version
 > > got <- got_dat[ , which(!apply(got_dat, 2, function(x) all(is.na(x))))]
+> > ## (B) dplyr version
+> > got <- got_dat %>% 
+> >   select(which(colSums(is.na(.)) < nrow(got_dat)))
 > > ```
 > {: .solution}
 {: .challenge}
+
+
+```{r, echo=FALSE}
+## remove columns that only contain NAs as entries
+got <- got_dat[ , which(!apply(got_dat, 2, function(x) all(is.na(x))))]
+```
 
 ## Graphical data exploration
 
@@ -90,7 +107,8 @@ First, we will make plots to check the distribution of different variables:
 * dth_flag
 * ...
 
-Type of **occupation** was categorised as “silk collar” (e.g. clergy, merchants, politicians, and rulers) or “boiled leather collar” (e.g. warriors, farmers, and other occupations relying heavily on manual work). 
+Type of **occupation** was categorised as “silk collar” (e.g. clergy, merchants, politicians, and rulers) or “boiled leather collar” (e.g. warriors, farmers, and other occupations relying heavily on manual work).
+
 Type of **social status** was categorised as “highborn” (lords, ladies, or legitimate offspring) or “lowborn” (all other characters).
 
 Because some characters switched **allegiance** during the show, both their last known allegiance and whether or not they switched allegiance during the show were recorded.
@@ -115,7 +133,7 @@ A proxy measure for how prominently a character featured in the show was provide
 
 ### Distribution
 
-To begin with, let's compare three categorical variables, e.g. *occupation* vs *sex* vs *social status*.
+To begin with, let's compare three categorical variables, e.g. **occupation** vs **sex** vs **social status**.
 
 > ## Challenge 3
 >
@@ -123,13 +141,7 @@ To begin with, let's compare three categorical variables, e.g. *occupation* vs *
 >
 > > ## Solution to Challenge 3
 > >
-> > ```{r}
-> > ## make a summary for each column 
-> > summary(got_dat)
-> > ```
-> >
-> > The last five columns have no entries at all and should be removed to not interfer with statistical analyses.
-> > ```{r, warning=FALSE, message=FALSE}
+> > ```{r , warning=FALSE, message=FALSE}
 > > ggplot(got) +
 > > geom_histogram(aes(x = factor(occupation), fill = factor(social_status)), stat = "count") +
 > > facet_wrap(~sex) +
@@ -144,13 +156,13 @@ This is not a very informative graph, because all categorical variables are enco
 > ## Challenge 4
 >
 > How can you find the values for each of the encoded categorical variable?
-> Note - you can solve this using either basic R functions, or `dplyr` package. 
 >
 > > ## Solution to Challenge 4
 > >
 > > ```{r}
 > > ## What are the categorial variables?
 > > cols_cat <- unique(meta$variable)
+> > ## (A) basic R based solution
 > > ## iterate over the categorial variables
 > > got_cat <- lapply(cols_cat, function(col) {
 > >   ## extract the numerical categories for the variable
@@ -163,6 +175,19 @@ This is not a very informative graph, because all categorical variables are enco
 > >   ## cbind the list of extracted values
 > >   as.data.frame(do.call(cbind, got_cat)),
 > >   nm = c(cols_cat))
+> > ## (B) dplyr based solution
+> > got_cat <- got %>% 
+> >   select(cols_cat, id, name) %>% 
+> >   tidyr::gather(key = cat_variable, value = cat_code, -id, -name) %>% 
+> >   rowwise() %>% 
+> >   mutate(variable_value = ifelse(is.na(cat_code), NA,
+> >     meta %>% 
+> >       filter(variable == cat_variable, code == cat_code) %>%
+> >       select(value) %>% 
+> >       pull())) %>% 
+> >   select(-cat_code) %>% 
+> >   tidyr::spread(key = cat_variable, value = variable_value) %>% 
+> >   ungroup()
 > > ```
 > >
 > > Now that you have a data.frame with values for the categorical variables, re-run the distribution plot.
@@ -178,6 +203,23 @@ This is not a very informative graph, because all categorical variables are enco
 ```
 > {: .solution}
 {: .challenge}
+
+```{r, echo=FALSE}
+## What are the categorial variables?
+cols_cat <- unique(meta$variable)
+## iterate over the categorial variables
+got_cat <- lapply(cols_cat, function(col) {
+  ## extract the numerical categories for the variable
+  got_col <- got[ , col]
+  ## find the corresponding entries in the metadata encoding table 
+  meta_col <- meta[meta$variable == col, ]
+  meta_col$value[match(got_col, meta_col$code)]
+  })
+got_cat <- setNames(
+  ## cbind the list of extracted values
+  as.data.frame(do.call(cbind, got_cat)),
+  nm = c(cols_cat))
+```
 
 ## Brief overview
 
@@ -275,7 +317,7 @@ Let's check whether survival probability differs between various groups of chara
 
 To compare two or more survival curves, most commonly log-rank test is applied. Essentially, the log rank test compares the observed number of events (i.e. deaths) in each group to what would be expected if the null hypothesis were true (i.e., if the survival curves were identical).
 
-The function `survdiff` can be used to compute log-rank test comparing two or more survival curves. The variable that stratifies indivoduals into groups have to be specified in the function's formula.
+The function `survdiff` can be used to compute log-rank test comparing two or more survival curves. The variable that stratifies individuals into groups have to be specified in the function's formula.
 
 
 > ## Challenge 6
@@ -316,7 +358,6 @@ In order to model survival based on **prominence**, which is a continuous variab
 > > ## Solution to Challenge 7
 > > 
 > > ```{r}
-> > library(dplyr)
 > > prominence_cats <- c("Low", "Medium", "High")
 > > ## bin data into tertiles (n = 3)
 > > got_cat$prominence_tertile <- ntile(got$prominence, n = 3)
@@ -376,5 +417,4 @@ ggforest(cox_fit, data = got_cat)
 > > 
 > {: .solution}
 {: .challenge}
-
 

@@ -226,7 +226,7 @@ Let's explore this dataset more by looking into how frequently new characters we
 > > Now, let's plot how many characters died in each season. There are characters which have NAs in the corresponding data.frame columns. Can you add them to the plot with a more meaningful data label than NA?
 > > 
 > > ```{r}
-## the second bar chart
+> > ## the second bar chart
 > > ggplot(got %>%
 > >   ## use dplyr mutate inside ggplot to quickly modify the column only for the plot
 > >   mutate(dth_season = ifelse(is.na(dth_season), "Still alive", dth_season))) +
@@ -249,6 +249,8 @@ For example, we can check whether **men and women** have the same distribution o
 >
 > We will use function `chisq.test` and set `correct=FALSE` to turn off Yates’ continuity correction.
 >
+> > ## Solution to Challenge 6
+> >
 > > ```{r}
 > > ## look into the number of characters in each category
 > > table(got_cat$sex, got_cat$occupation)

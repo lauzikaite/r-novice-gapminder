@@ -383,6 +383,8 @@ For example, we can check whether **men and women** have the same distribution o
 >
 > We will use function `chisq.test` and set `correct=FALSE` to turn off Yates’ continuity correction.
 >
+> > ## Solution to Challenge 6
+> >
 > > 
 > > ~~~
 > > ## look into the number of characters in each category

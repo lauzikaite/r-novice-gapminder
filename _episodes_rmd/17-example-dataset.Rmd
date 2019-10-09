@@ -221,9 +221,10 @@ Let's explore this dataset more by looking into how frequently new characters we
 > >   scale_x_discrete(name = "Season number") +
 > >   ggtitle("How many new characters were introduced in each season")
 > > ```
-> Maybe this explain why season 7 is considered the worst of all?
-> Now, let's plot how many characters died in each season. There are characters which have NAs in the corresponding data.frame columns. Can you add them to the plot with a more meaningful data label than NA?
-> 
+> > Maybe this explain why season 7 is considered the worst of all?
+> > 
+> > Now, let's plot how many characters died in each season. There are characters which have NAs in the corresponding data.frame columns. Can you add them to the plot with a more meaningful data label than NA?
+> > 
 > > ```{r}
 ## the second bar chart
 > > ggplot(got %>%
@@ -235,21 +236,6 @@ Let's explore this dataset more by looking into how frequently new characters we
 > > ```
 > {: .solution}
 {: .challenge}
-
-
-```{r}
-# ## make a bar chart to show how many character were introduced in every season
-# ggplot(got) +
-#   geom_bar(aes(x = as.factor(intro_season))) +
-#   scale_x_discrete(name = "Season number") +
-#   ggtitle("How many new characters were introduced in each season")
-# 
-# ggplot(got %>%
-#          mutate(dth_season = ifelse(is.na(dth_season), "Still alive", dth_season))) +
-#   geom_bar(aes(x = as.factor(dth_season))) +
-#   scale_x_discrete(name = "Season number") +
-#   ggtitle("How many characters died in each season")
-```
 
 ## Brief overview
 
@@ -269,8 +255,8 @@ For example, we can check whether **men and women** have the same distribution o
 > > ## run the test
 > > chisq.test(got_cat$sex, got_cat$occupation, correct = FALSE)
 > > ```
->  
-> It seems as if sex and occupation variables are dependent? But information of the occupation for lots of the characters is unknwon. Perhaps these should be omitted from the test.
+> > 
+> > It seems as if sex and occupation variables are dependent? But information of the occupation for lots of the characters is unknwon. Perhaps these should be omitted from the test.
 > > 
 > > ```{r}
 > > ## remove characters for which occupation is not known

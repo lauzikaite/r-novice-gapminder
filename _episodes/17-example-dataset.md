@@ -351,9 +351,10 @@ Let's explore this dataset more by looking into how frequently new characters we
 > > {: .language-r}
 > > 
 > > <img src="../fig/rmd-17-unnamed-chunk-13-1.png" title="plot of chunk unnamed-chunk-13" alt="plot of chunk unnamed-chunk-13" width="612" style="display: block; margin: auto;" />
-> Maybe this explain why season 7 is considered the worst of all?
-> Now, let's plot how many characters died in each season. There are characters which have NAs in the corresponding data.frame columns. Can you add them to the plot with a more meaningful data label than NA?
-> 
+> > Maybe this explain why season 7 is considered the worst of all?
+> > 
+> > Now, let's plot how many characters died in each season. There are characters which have NAs in the corresponding data.frame columns. Can you add them to the plot with a more meaningful data label than NA?
+> > 
 > > 
 > > ~~~
 > > ## the second bar chart
@@ -369,23 +370,6 @@ Let's explore this dataset more by looking into how frequently new characters we
 > > <img src="../fig/rmd-17-unnamed-chunk-14-1.png" title="plot of chunk unnamed-chunk-14" alt="plot of chunk unnamed-chunk-14" width="612" style="display: block; margin: auto;" />
 > {: .solution}
 {: .challenge}
-
-
-
-~~~
-# ## make a bar chart to show how many character were introduced in every season
-# ggplot(got) +
-#   geom_bar(aes(x = as.factor(intro_season))) +
-#   scale_x_discrete(name = "Season number") +
-#   ggtitle("How many new characters were introduced in each season")
-# 
-# ggplot(got %>%
-#          mutate(dth_season = ifelse(is.na(dth_season), "Still alive", dth_season))) +
-#   geom_bar(aes(x = as.factor(dth_season))) +
-#   scale_x_discrete(name = "Season number") +
-#   ggtitle("How many characters died in each season")
-~~~
-{: .language-r}
 
 ## Brief overview
 
@@ -434,8 +418,8 @@ For example, we can check whether **men and women** have the same distribution o
 > > X-squared = 80.436, df = 2, p-value < 2.2e-16
 > > ~~~
 > > {: .output}
->  
-> It seems as if sex and occupation variables are dependent? But information of the occupation for lots of the characters is unknwon. Perhaps these should be omitted from the test.
+> > 
+> > It seems as if sex and occupation variables are dependent? But information of the occupation for lots of the characters is unknwon. Perhaps these should be omitted from the test.
 > > 
 > > 
 > > ~~~
@@ -606,7 +590,7 @@ ggsurvplot(surv_model, data = got_cat, surv.median.line = "hv")
 ~~~
 {: .language-r}
 
-<img src="../fig/rmd-17-unnamed-chunk-24-1.png" title="plot of chunk unnamed-chunk-24" alt="plot of chunk unnamed-chunk-24" width="612" style="display: block; margin: auto;" />
+<img src="../fig/rmd-17-unnamed-chunk-23-1.png" title="plot of chunk unnamed-chunk-23" alt="plot of chunk unnamed-chunk-23" width="612" style="display: block; margin: auto;" />
 
 Use the `surv_model` object to extract the probability of surviving at least 1 h in the show.
 
@@ -657,7 +641,7 @@ The function `survdiff` can be used to compute log-rank test comparing two or mo
 > > ~~~
 > > {: .language-r}
 > > 
-> > <img src="../fig/rmd-17-unnamed-chunk-26-1.png" title="plot of chunk unnamed-chunk-26" alt="plot of chunk unnamed-chunk-26" width="612" style="display: block; margin: auto;" />
+> > <img src="../fig/rmd-17-unnamed-chunk-25-1.png" title="plot of chunk unnamed-chunk-25" alt="plot of chunk unnamed-chunk-25" width="612" style="display: block; margin: auto;" />
 > > 
 > > 
 > > ~~~
@@ -667,7 +651,7 @@ The function `survdiff` can be used to compute log-rank test comparing two or mo
 > > ~~~
 > > {: .language-r}
 > > 
-> > <img src="../fig/rmd-17-unnamed-chunk-27-1.png" title="plot of chunk unnamed-chunk-27" alt="plot of chunk unnamed-chunk-27" width="612" style="display: block; margin: auto;" />
+> > <img src="../fig/rmd-17-unnamed-chunk-26-1.png" title="plot of chunk unnamed-chunk-26" alt="plot of chunk unnamed-chunk-26" width="612" style="display: block; margin: auto;" />
 > >
 > > 
 > > ~~~
@@ -677,7 +661,7 @@ The function `survdiff` can be used to compute log-rank test comparing two or mo
 > > ~~~
 > > {: .language-r}
 > > 
-> > <img src="../fig/rmd-17-unnamed-chunk-28-1.png" title="plot of chunk unnamed-chunk-28" alt="plot of chunk unnamed-chunk-28" width="612" style="display: block; margin: auto;" />
+> > <img src="../fig/rmd-17-unnamed-chunk-27-1.png" title="plot of chunk unnamed-chunk-27" alt="plot of chunk unnamed-chunk-27" width="612" style="display: block; margin: auto;" />
 > {: .solution}
 {: .challenge}
 
@@ -707,7 +691,7 @@ In order to model survival based on **prominence**, which is a continuous variab
 > > ~~~
 > > {: .language-r}
 > > 
-> > <img src="../fig/rmd-17-unnamed-chunk-30-1.png" title="plot of chunk unnamed-chunk-30" alt="plot of chunk unnamed-chunk-30" width="612" style="display: block; margin: auto;" />
+> > <img src="../fig/rmd-17-unnamed-chunk-29-1.png" title="plot of chunk unnamed-chunk-29" alt="plot of chunk unnamed-chunk-29" width="612" style="display: block; margin: auto;" />
 > {: .solution}
 {: .challenge}
 
@@ -787,7 +771,7 @@ Warning: Removed 4 rows containing missing values (geom_errorbar).
 ~~~
 {: .error}
 
-<img src="../fig/rmd-17-unnamed-chunk-33-1.png" title="plot of chunk unnamed-chunk-33" alt="plot of chunk unnamed-chunk-33" width="612" style="display: block; margin: auto;" />
+<img src="../fig/rmd-17-unnamed-chunk-32-1.png" title="plot of chunk unnamed-chunk-32" alt="plot of chunk unnamed-chunk-32" width="612" style="display: block; margin: auto;" />
 
 > ## Challenge 10
 >

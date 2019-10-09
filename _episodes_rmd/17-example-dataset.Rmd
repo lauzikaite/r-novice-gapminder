@@ -29,7 +29,7 @@ Let's start by downloading Game of Thrones characters' mortality data, that was 
 1. Original [characters data](https://raw.githubusercontent.com/lauzikaite/r-novice-gapminder/gh-pages/_episodes_rmd/data/character_data_S01-S08.csv)
 2. Additional [data encoding](https://raw.githubusercontent.com/lauzikaite/r-novice-gapminder/gh-pages/_episodes_rmd/data/encoding.csv) table
 
-In this episode, we will provide solutions based both on **base R** and **Tidyverse**. To begin with, we will only load the `dplyr` package, which we will use the most.
+In this episode, we will provide solutions based both on **base R** and **Tidyverse**. To begin with, we will only load the `dplyr` package, which we will use the most. Note that we will call some of the functions from other **Tidyverse** packages by `package_name::function_name` which is a common way of calling functions without loading the whole package.
 
 ```{r}
 library(dplyr)
@@ -68,12 +68,9 @@ Once data is loaded into R, let's evaluate its quality.
 > > summary(got_dat)
 > > ```
 > >
-> > The last five columns have no entries at all and should be removed to not interfer with statistical analyses.
+> > The last five columns have no entries at all and should be removed to not interfere with statistical analyses.
 > > ```{r}
 > > ## remove columns that only contain NAs as entries
-> > ## (A) basic R version
-> > got <- got_dat[ , which(!apply(got_dat, 2, function(x) all(is.na(x))))]
-> > ## (B) dplyr version
 > > got <- got_dat %>% 
 > >   select(which(colSums(is.na(.)) < nrow(got_dat)))
 > > ```
@@ -88,7 +85,9 @@ got <- got_dat[ , which(!apply(got_dat, 2, function(x) all(is.na(x))))]
 
 ## Graphical data exploration
 
-To make graphical data visualisations, we will be using `ggplot`  library.
+Before proceeding into any kind of statistical analysis, it is worth exploring the dataset of interest from different perspectives.
+
+To make graphical data visualisations, we will be using `ggplot` package.
 
 ```{r, warning=FALSE,message=FALSE}
 library(ggplot2)
@@ -116,11 +115,12 @@ Whether character died or not during the period provided in the dataset is flagg
 
 **Continuous**:
 
+* intro_season & intro_episode, season/episode number in which character first appeared
 * exp_time_sec, survival time of character
 * intro_time_sec, cumulative net running time when character first appeared
 * dth_episode, number of the episode in which character died
-* prominence
 * icd10_cause_text, cause of death
+* prominence
 * ...
 
 A proxy measure for how prominently a character featured in the show was provided in the data. This **prominence** score was calculated by taking the number of episodes that a character appeared in and dividing that by the number of total episodes that the character could have appeared in (i.e. the number of episodes occurring from the character first being introduced until the point of death or censoring). This ratio was then multiplied by the number of seasons that the character had featured in.
@@ -136,13 +136,13 @@ To begin with, let's compare three categorical variables, e.g. **occupation** vs
 
 > ## Challenge 3
 >
-> Make a histogram plot to show the distribution of three categorical variables of your choice, e.g. *occupation* vs *sex* vs *social status*. How can you ensure that all three variables are represented ina single figure? Tip - think about the aesthetics mapping in `ggplot()`.
+> Make a bar chart to show the distribution of three categorical variables of your choice, e.g. *occupation* vs *sex* vs *social status*. How can you ensure that all three variables are represented in single figure? Tip - think about the aesthetics mapping in `ggplot()`.
 >
 > > ## Solution to Challenge 3
 > >
 > > ```{r , warning=FALSE, message=FALSE}
 > > ggplot(got) +
-> > geom_histogram(aes(x = factor(occupation), fill = factor(social_status)), stat = "count") +
+> > geom_bar(aes(x = factor(occupation), fill = factor(social_status))) +
 > > facet_wrap(~sex) +
 > > scale_x_discrete(name = "occupation") +
 > > scale_fill_viridis_d(name = "social status")
@@ -161,20 +161,6 @@ This is not a very informative graph, because all categorical variables are enco
 > > ```{r}
 > > ## What are the categorial variables?
 > > cols_cat <- unique(meta$variable)
-> > ## (A) basic R based solution
-> > ## iterate over the categorial variables
-> > got_cat <- lapply(cols_cat, function(col) {
-> >   ## extract the numerical categories for the variable
-> >   got_col <- got[ , col]
-> >   ## find the corresponding entries in the metadata encoding table 
-> >   meta_col <- meta[meta$variable == col, ]
-> >   meta_col$value[match(got_col, meta_col$code)]
-> >   })
-> > got_cat <- setNames(
-> >   ## cbind the list of extracted values
-> >   as.data.frame(do.call(cbind, got_cat)),
-> >   nm = c(cols_cat))
-> > ## (B) dplyr based solution
 > > got_cat <- got %>% 
 > >   select(cols_cat, id, name) %>% 
 > >   tidyr::gather(key = cat_variable, value = cat_code, -id, -name) %>% 
@@ -194,12 +180,12 @@ This is not a very informative graph, because all categorical variables are enco
 > >
 > > ```{r, warning=FALSE, message=FALSE}
 > > ggplot(got_cat) +
-> >   geom_histogram(aes(x = factor(occupation), fill = factor(social_status)), stat = "count") +
+> >   geom_bar(aes(x = factor(occupation), fill = factor(social_status))) +
 > >   facet_wrap(~sex) +
 > >   scale_x_discrete(name = "occupation") +
 > >   scale_fill_viridis_d(name = "social status") +
 > >   theme(axis.text.x = element_text(angle = 90, hjust = 1))
-```
+> > ```
 > {: .solution}
 {: .challenge}
 
@@ -220,7 +206,81 @@ got_cat <- setNames(
   nm = c(cols_cat))
 ```
 
+Let's explore this dataset more by looking into how frequently new characters were introduced into the show. Which `got` data.frame column store this information?
+
+> ## Challenge 5
+>
+> Make two bar charts: one to show how many character were introduced in every season and one to show how many characters died in each season.
+>
+> > ## Solution to Challenge 5
+> >
+> > ```{r}
+> > ## make a bar chart to show how many character were introduced in every season
+> > ggplot(got) +
+> >   geom_bar(aes(x = as.factor(intro_season))) +
+> >   scale_x_discrete(name = "Season number") +
+> >   ggtitle("How many new characters were introduced in each season")
+> > ```
+> Maybe this explain why season 7 is considered the worst of all?
+> Now, let's plot how many characters died in each season. There are characters which have NAs in the corresponding data.frame columns. Can you add them to the plot with a more meaningful data label than NA?
+> 
+> > ```{r}
+## the second bar chart
+> > ggplot(got %>%
+> >   ## use dplyr mutate inside ggplot to quickly modify the column only for the plot
+> >   mutate(dth_season = ifelse(is.na(dth_season), "Still alive", dth_season))) +
+> >   geom_bar(aes(x = as.factor(dth_season))) +
+> >   scale_x_discrete(name = "Season number") +
+> >   ggtitle("How many characters died in each season")
+> > ```
+> {: .solution}
+{: .challenge}
+
+
+```{r}
+# ## make a bar chart to show how many character were introduced in every season
+# ggplot(got) +
+#   geom_bar(aes(x = as.factor(intro_season))) +
+#   scale_x_discrete(name = "Season number") +
+#   ggtitle("How many new characters were introduced in each season")
+# 
+# ggplot(got %>%
+#          mutate(dth_season = ifelse(is.na(dth_season), "Still alive", dth_season))) +
+#   geom_bar(aes(x = as.factor(dth_season))) +
+#   scale_x_discrete(name = "Season number") +
+#   ggtitle("How many characters died in each season")
+```
+
 ## Brief overview
+
+It is worth performing some basic statistics before diving deep into the questions that really interests you.
+
+For example, we can check whether **men and women** have the same distribution of **occupation** using **chi-square test**. The chi-squared test is a statistical hypothesis test that assumes (the null hypothesis) that the observed frequencies for a categorical variable match the expected frequencies for the categorical variable.
+
+> ## Challenge 6
+>
+> Calculate chi-square statistic between sex and occupation, or your selected categorical variables. Which of the variables are independent of the sex variable and which are dependent? 
+>
+> We will use function `chisq.test` and set `correct=FALSE` to turn off Yates’ continuity correction.
+>
+> > ```{r}
+> > ## look into the number of characters in each category
+> > table(got_cat$sex, got_cat$occupation)
+> > ## run the test
+> > chisq.test(got_cat$sex, got_cat$occupation, correct = FALSE)
+> > ```
+>  
+> It seems as if sex and occupation variables are dependent? But information of the occupation for lots of the characters is unknwon. Perhaps these should be omitted from the test.
+> > 
+> > ```{r}
+> > ## remove characters for which occupation is not known
+> > got_occup <- got_cat %>% 
+> >   filter(occupation != "Unknown/Unclear")
+> > ## rerun the test
+> > chisq.test(got_occup$sex, got_occup$occupation, correct = FALSE)
+> > ```
+> {: .solution}
+{: .challenge}
 
 The cause of death is stored in column `icd10_cause_text` in the original dataset. Value `dth_flag == 1` indicates that character died during the period described in the dataset.
 
@@ -228,22 +288,22 @@ The cause of death is stored in column `icd10_cause_text` in the original datase
 head(got[got$dth_flag == 1, "icd10_cause_text"])
 ```
 
-> ## Challenge 5
+> ## Challenge 7
 >
 > Provide answers to the following questions:
 >
-> * What proportion of characters died by the end of the period included in the dataset?
-> * What are the major causes of death?
+> * What percentage of characters died by the end of the period included in the dataset?
+> * What were the major causes of death?
 >
-> > ## Solution to Challenge 5
+> > ## Solution to Challenge 7
 > > 
 > > ```{r}
 > > chars_died <- nrow(got[got$dth_flag == 1, ])
 > > chars_total <- nrow(got)
-> > ## proportion of characters that died
+> > ## percentage of characters that died
 > > chars_died/ chars_total * 100
 > > ```
-> > To identify the most common cause of death, use function `table` which calculates frequencies of entries.
+> > To identify the most common cause of death, use base R function `table` which calculates frequencies of entries.
 > > 
 > > ```{r}
 > > causes <- table(got[got$dth_flag == 1, "icd10_cause_text"])
@@ -257,6 +317,8 @@ head(got[got$dth_flag == 1, "icd10_cause_text"])
 # Survival analysis
 
 We will use Kaplan-Meier (KM) survival analysis with Cox proportional hazard regression modelling to quantify survival times and probabilities and to identify independent predictors of mortality, respectively.
+
+A good introduction on the topic can be found at [datacamp](https://www.datacamp.com/community/tutorials/survival-analysis-R).
 
 ## Kaplan-Meier model
 
@@ -323,13 +385,13 @@ To compare two or more survival curves, most commonly log-rank test is applied. 
 The function `survdiff` can be used to compute log-rank test comparing two or more survival curves. The variable that stratifies individuals into groups have to be specified in the function's formula.
 
 
-> ## Challenge 6
+> ## Challenge 8
 >
 > Fit KM model for the three variables: **sex**, **social_status**, **allegiance_switched**. You will need to specify these in the formula inside the `survfit` function.
 > To add obtained p-value for test to the plot, use `pval = TRUE` argument in `ggsurvplot` function.
 > Don't forget to use the data.frame with string values for categorical variables so that the plots would have clear labels.
 >
-> > ## Solution to Challenge 6
+> > ## Solution to Challenge 8
 > > 
 > > ```{r}
 > > ## stratify by sex
@@ -353,12 +415,12 @@ The function `survdiff` can be used to compute log-rank test comparing two or mo
 
 In order to model survival based on **prominence**, which is a continuous variable, we have to categorise characters into groups (i.e. discrete variable). 
 
-> ## Challenge 7
+> ## Challenge 9
 >
 > Divide characters into tertiles (i.e. high, medium, and low) based on their **prominence**. Tip - one of possible ways of doing this is with `dplyr` package.
 > Make a KM survival curve plot for the prominence categories.
 >
-> > ## Solution to Challenge 7
+> > ## Solution to Challenge 9
 > > 
 > > ```{r}
 > > prominence_cats <- c("Low", "Medium", "High")
@@ -405,17 +467,17 @@ Hazard ratios (HR) are derived from the multivariate Cox model. Briefly, an HR >
 ggforest(cox_fit, data = got_cat)
 ```
 
-> ## Challenge 8
+> ## Challenge 10
 >
 > What kind of a character was more likely to die in Game of Thrones?
 >
-> > ## Solution to Challenge 8
+> > ## Solution to Challenge 10
 > > 
 > > Character that was more likely to die in Game of Thrones:
 > >
 > > * Male, rather than female (but not statistically significant)
 > > * Lowborn, rather than highborn
-> > * Those who did not switch allegiance (loalty wins?)
+> > * Those who did not switch allegiance (loyalty wins?)
 > > * Characters who only featured moderately prominently (protection by the importance of the role?)
 > > 
 > {: .solution}
